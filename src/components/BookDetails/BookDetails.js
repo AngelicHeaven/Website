@@ -1,14 +1,14 @@
-import {React, useState, useEffect, useContext} from "react";
+import { React, useState, useEffect, useContext } from "react";
 import "./BookDetails.css";
-import {useParams, useHistory} from "react-router-dom";
+import { useParams, useHistory, Link } from "react-router-dom";
 import Booksnaps from "./Booksnaps";
 import Bookfullsnap from "./Bookfullsnap";
 import BookDesc from "./BookDesc";
 import axios from "../../axios";
-import {UserContext} from "../../Context/userContext";
+import { UserContext } from "../../Context/userContext";
 import Snackbar from "@material-ui/core/Snackbar";
 import MuiAlert from "@material-ui/lab/Alert";
-import {makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Button from "@material-ui/core/Button";
 // Alert
@@ -43,6 +43,9 @@ const BookDetails = (props) => {
   const [loader, setloader] = useState(true);
   const [loadWishlist, setloadWishlist] = useState(false);
   const [loadCart, setloadCart] = useState(false);
+
+  // maintain visibility state for showing alert when user is not logged in
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,7 +102,7 @@ const BookDetails = (props) => {
         setloadWishlist(true);
         axios
           .delete("/deleteWishlistItem", {
-            data: {bookId: id},
+            data: { bookId: id },
           })
           .then((response) => {
             setOpen(true);
@@ -175,7 +178,7 @@ const BookDetails = (props) => {
         setloadCart(true);
         axios
           .delete("/deleteCartItem", {
-            data: {bookId: id},
+            data: { bookId: id },
           })
           .then((response) => {
             setOpen(true);
@@ -223,74 +226,113 @@ const BookDetails = (props) => {
   return (
     <div>
       {/* Loader */}
-      <div className="page-loader" style={{display: loader ? "flex" : "none"}}>
-        <CircularProgress style={{height: "80px", width: "80px"}} />
+      <div
+        className="page-loader"
+        style={{ display: loader ? "flex" : "none" }}
+      >
+        <CircularProgress style={{ height: "80px", width: "80px" }} />
       </div>
 
       {/* Component */}
       {!loader ? (
-        <div className="book-details-bg">
-          <div className="book-main-container">
-            <Booksnaps snaps={book.photos} video={book.embedVideo} />
-            <Bookfullsnap url={book.photos[0]} />
-            <BookDesc bookdetails={book} />
-          </div>
-          <div className="book-purchase-container">
-            <Button
-              variant="contained"
-              onClick={() => {
-                handelWishList(bookId);
-              }}
-              className="wishlist-btn"
-            >
-              <i className={wishlist ? "fas fa-heart" : "far fa-heart"} />
-              &nbsp;{wishlist ? "Remove From Wishlist" : "Add To Wishlist"}
-              &nbsp;
-              <CircularProgress
-                style={{
-                  height: "20px",
-                  width: "20px",
-                  color: "white",
-                  display: loadWishlist ? "inline-block" : "none",
+        <>
+          {book.status === "Deleted" && (
+            <div className="deleted-book-overlay">
+              <span className="deleted-book-content">Book not available</span>
+            </div>
+          )}
+          <div className="book-details-bg">
+            <div className="book-main-container">
+              <Booksnaps snaps={book.photos} video={book.embedVideo} />
+              <Bookfullsnap url={book.photos[0]} />
+              <BookDesc bookdetails={book} />
+            </div>
+            <div className="book-purchase-container">
+              <Button
+                variant="contained"
+                onClick={() => {
+                  handelWishList(bookId);
                 }}
-              />
-            </Button>
+                className="wishlist-btn"
+              >
+                <i className={wishlist ? "fas fa-heart" : "far fa-heart"} />
+                &nbsp;
+                {wishlist ? "Remove From Wishlist" : "Add To Wishlist"}
+                &nbsp;
+                <CircularProgress
+                  style={{
+                    height: "20px",
+                    width: "20px",
+                    color: "white",
+                    display: loadWishlist ? "inline-block" : "none",
+                  }}
+                />
+              </Button>
 
-            <Button
-              variant="contained"
-              onClick={() => {
-                handelCart(bookId);
-              }}
-              className="addtocart-btn"
-            >
-              <i className="fas fa-cart-arrow-down" />
-              &nbsp;{cart ? "Remove from Cart" : "Add to Cart"}
-              &nbsp;
-              <CircularProgress
-                style={{
-                  height: "20px",
-                  width: "20px",
-                  color: "white",
-                  display: loadCart ? "inline-block" : "none",
+              <Button
+                variant="contained"
+                onClick={() => {
+                  handelCart(bookId);
                 }}
-              />
-            </Button>
+                className="addtocart-btn"
+              >
+                <i className="fas fa-cart-arrow-down" />
+                &nbsp;
+                {cart ? "Remove from Cart" : "Add to Cart"}
+                &nbsp;
+                <CircularProgress
+                  style={{
+                    height: "20px",
+                    width: "20px",
+                    color: "white",
+                    display: loadCart ? "inline-block" : "none",
+                  }}
+                />
+              </Button>
 
-            <Button
-              variant="contained"
-              onClick={() => {
-                history.push(`/Checkout/${bookId}`);
-              }}
-              className="buynow-btn"
-            >
-              <i className="fas fa-shopping-basket" />
-              &nbsp;Buy Now
-            </Button>
-            {/* <div className="recommened-tags">
+              <Button
+                variant="contained"
+                onClick={() => {
+                  if (!user) {
+                    setShowLoginAlert(true);
+                  } else {
+                    history.push(`/Checkout/${bookId}`);
+                  }
+                }}
+                className="buynow-btn"
+              >
+                <i className="fas fa-shopping-basket" />
+                &nbsp;Buy Now
+              </Button>
+              {showLoginAlert ? (
+                <Alert
+                  onClose={() => {
+                    setShowLoginAlert(false);
+                  }}
+                  severity="error"
+                  style={{ fontSize: "12px" }}
+                >
+                  Please{" "}
+                  <Link
+                    style={{
+                      color: "#fff",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                      letterSpacing: "1px",
+                    }}
+                    to="/Login"
+                  >
+                    <u>Login</u>
+                  </Link>{" "}
+                  to purchase <b>"{book.title}"</b> book
+                </Alert>
+              ) : null}
+              {/* <div className="recommened-tags">
               <h3>Recommended Tags</h3>
             </div> */}
+            </div>
           </div>
-        </div>
+        </>
       ) : (
         <></>
       )}

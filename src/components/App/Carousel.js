@@ -3,7 +3,7 @@ import Slider from "react-animated-slider";
 import "react-animated-slider/build/horizontal.css";
 import "./Slider-animations.css";
 import "./Carousel.css";
-import {useHistory} from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 function Carousel() {
   const history = useHistory();
@@ -48,7 +48,7 @@ function Carousel() {
                     if (item.button === "Sell Now") {
                       history.push("/SellerPanel/5");
                     } else {
-                      history.push("/SearchResult/books");
+                      history.push("/SearchResult/tag:ALL");
                     }
                   }}
                 >

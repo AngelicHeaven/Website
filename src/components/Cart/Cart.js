@@ -1,8 +1,8 @@
-import {React, useState, useEffect, useContext} from "react";
+import { React, useState, useEffect, useContext } from "react";
 import "./Cart.css";
-import {useHistory} from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import axios from "../../axios";
-import {UserContext} from "../../Context/userContext";
+import { UserContext } from "../../Context/userContext";
 import CircularProgress from "@material-ui/core/CircularProgress";
 function Cart() {
   const history = useHistory();
@@ -39,23 +39,57 @@ function Cart() {
 
   const addItem = (id, maxx, price) => {
     var qty = Number.parseInt(document.getElementById(id).innerHTML);
+    var currentPurchaseQty = Number.parseInt(user.cartitems);
     if (qty < maxx) {
       qty += 1;
       cart[id].purchaseQty = qty;
+      
+      currentPurchaseQty +=1;
+      user.cartitems=currentPurchaseQty;
+      
       amt = amount + price;
       setamount(amt);
       document.getElementById(id).innerHTML = qty;
+      
+      for (let i = 0; i < cart.length; i++) {
+        const update = async () => {
+          axios
+            .post("/changeCartItemPurchaseQty", {
+              cartItemId: cart[i]._id,
+              purchaseQty: cart[i].purchaseQty,
+            })
+            .catch(() => {});
+        };
+        update();
+      } 
     } else {
     }
   };
   const DeleteItem = (id, price) => {
     var qty = Number.parseInt(document.getElementById(id).innerHTML);
+    var currentPurchaseQty = Number.parseInt(user.cartitems);
     if (qty > 1) {
       qty -= 1;
       cart[id].purchaseQty = qty;
+      
+      currentPurchaseQty -=1;
+      user.cartitems=currentPurchaseQty;
+      
       amt = amount - price;
       setamount(amt);
       document.getElementById(id).innerHTML = qty;
+      
+      for (let i = 0; i < cart.length; i++) {
+        const update = async () => {
+          axios
+            .post("/changeCartItemPurchaseQty", {
+              cartItemId: cart[i]._id,
+              purchaseQty: cart[i].purchaseQty,
+            })
+            .catch(() => {});
+        };
+        update();
+      }
     } else {
     }
   };
@@ -65,11 +99,15 @@ function Cart() {
     amt = 0;
     axios
       .delete("/deleteCartItem", {
-        data: {bookId: ID},
+        data: { bookId: ID },
       })
       .then((response) => {
         let memo = cart.filter((item) => ID !== item.bookId);
         setcart(memo);
+      
+      let removeQtyGet = cart.filter((item) => ID == item.bookId);
+        let removeQty = removeQtyGet[0].purchaseQty;
+      
         for (let i = 0; i < memo.length; i++) {
           amt += memo[i].price;
         }
@@ -80,7 +118,7 @@ function Cart() {
             authHeader: user.authHeader,
             roles: user.roles,
             email: user.email,
-            cartitems: user.cartitems - 1,
+            cartitems: user.cartitems - removeQty,
             wishlist: user.wishlist,
           })
         );
@@ -88,7 +126,7 @@ function Cart() {
           authHeader: user.authHeader,
           roles: user.roles,
           email: user.email,
-          cartitems: user.cartitems - 1,
+          cartitems: user.cartitems - removeQty,
           wishlist: user.wishlist,
         });
       })
@@ -123,7 +161,7 @@ function Cart() {
       {user === null ? (
         <div
           style={{
-            height: "100%",
+            minHeight: "100%",
             width: "100%",
             display: "flex",
             justifyContent: "center",
@@ -135,7 +173,7 @@ function Cart() {
             <i
               className="far fa-frown"
               style={{
-                fontSize: "20em",
+                fontSize: "10em",
                 color: "rgba(255,0,0,0.4)",
               }}
             />
@@ -155,14 +193,14 @@ function Cart() {
           {/* Loader */}
           <div
             className="page-loader"
-            style={{display: loader ? "flex" : "none"}}
+            style={{ display: loader ? "flex" : "none" }}
           >
-            <CircularProgress style={{height: "50px", width: "50px"}} />
+            <CircularProgress style={{ height: "50px", width: "50px" }} />
           </div>
 
           <div
             className="cart-container-left"
-            style={{display: loader ? "none" : "block"}}
+            style={{ display: loader ? "none" : "block" }}
           >
             <h1 className="cart-title">
               <i className="fas fa-cart-arrow-down"></i>&nbsp;Cart
@@ -227,7 +265,7 @@ function Cart() {
                       <h3 className="avl-qty">
                         Available Quantity : <span>{item.qty}</span>
                       </h3>
-                      <h3 style={{color: "green"}}>Purchasing Quantity</h3>
+                      <h3 style={{ color: "green" }}>Purchasing Quantity</h3>
                       <table className="book-quantity">
                         <thead>
                           <tr>
@@ -241,7 +279,10 @@ function Cart() {
                             </td>
                             <td
                               id={idx}
-                              style={{color: "green", fontFamily: "PT Sans"}}
+                              style={{
+                                color: "green",
+                                fontFamily: "PT Sans",
+                              }}
                             >
                               {Math.min(item.purchaseQty, item.qty)}
                             </td>
@@ -272,7 +313,7 @@ function Cart() {
           </div>
           <div
             className="cart-container-right"
-            style={{display: loader ? "none" : "block"}}
+            style={{ display: loader ? "none" : "block" }}
           >
             <h2>Total Amount Payable</h2>
             <div className="cart-total">
@@ -295,7 +336,11 @@ function Cart() {
               {checkout ? (
                 <>
                   <CircularProgress
-                    style={{height: "25px", width: "25px", color: "white"}}
+                    style={{
+                      height: "25px",
+                      width: "25px",
+                      color: "white",
+                    }}
                   />
                   &nbsp;Checking Out...
                 </>

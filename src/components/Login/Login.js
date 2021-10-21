@@ -1,9 +1,9 @@
-import {React, useState, useContext} from "react";
+import { React, useState, useContext } from "react";
 import "./Login.css";
 import axios from "../../axios";
-import {Link, useHistory} from "react-router-dom";
-import {UserContext} from "../../Context/userContext";
-import {AddFormContext} from "../../Context/formContext";
+import { Link, useHistory } from "react-router-dom";
+import { UserContext } from "../../Context/userContext";
+import { AddFormContext } from "../../Context/formContext";
 import CircularProgress from "@material-ui/core/CircularProgress";
 const eye = {
   open: "far fa-eye",
@@ -17,7 +17,7 @@ const Errorstyle = {
 function Login() {
   // context states
   const [, setUser] = useContext(UserContext);
-  const [, setAddForm] = useContext(AddFormContext);
+  const [addForm, setAddForm] = useContext(AddFormContext);
   const history = useHistory();
 
   // login states
@@ -123,9 +123,25 @@ function Login() {
             cartitems: 0,
             wishlist: 0,
           });
+          setAddForm({
+            title: "",
+            MRP: "",
+            price: "",
+            editionYear: "2021",
+            author: "",
+            ISBN: "9782724088526",
+            language: "",
+            pickupAddressId: "",
+            description: "",
+            photos: [],
+            weightInGrams: "",
+            embedVideo: "",
+            tags: [],
+            qty: 1,
+          });
           setTimeout(() => {
             setloader("none");
-            history.push("/");
+            history.goBack();
           }, 5000);
         })
         .catch((error) => {
@@ -250,11 +266,17 @@ function Login() {
                   >
                     Login
                   </button>
-                  <div className="login-load" style={{display: loader}}>
-                    <CircularProgress style={{height: "20px", width: "20px"}} />
+                  <div className="login-load" style={{ display: loader }}>
+                    <CircularProgress
+                      style={{
+                        height: "20px",
+                        width: "20px",
+                      }}
+                    />
                   </div>
                   <span className="register">
-                    <Link to="/Signup">Create Account</Link>&nbsp; instead ?
+                    <Link to="/Signup">Create Account</Link>
+                    &nbsp; instead ?
                   </span>
                 </div>
               </form>
